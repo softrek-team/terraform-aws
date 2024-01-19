@@ -1,4 +1,8 @@
-# terraform-aws-complete-infrastructure
-Terraform AWS example for complete production infrastructure including VPC, ECS, ALB, ECR, ECS service task, S3 website
+# Softrek Terraform AWS setup
+This is the main Terraform AWS infrastructure setup including VPC, ECS, ALB, ECR.
 # Requirements
 Terraform installed
+# Init terraform project
+```
+terraform init
+```
