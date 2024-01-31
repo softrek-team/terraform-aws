@@ -3,7 +3,7 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
   enable_dns_support = true
   tags = {
-    Name = concat(var.app_name, " VPC")
+    Name = "${var.app_name} VPC"
   }
 }
 
@@ -33,7 +33,7 @@ resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = concat(var.app_name, " VPC IG") 
+    Name = "${var.app_name} VPC IG"
   }
 }
 
@@ -59,7 +59,7 @@ resource "aws_route_table_association" "public_subnet_asso" {
 resource "aws_eip" "nat_gateway" {
   vpc = true
   tags = {
-    Name = concat(var.app_name, " NAT")
+    Name = "${var.app_name} NAT"
     
   }
 }
@@ -68,7 +68,7 @@ resource "aws_nat_gateway" "nat_gateway" {
   subnet_id     = aws_subnet.public_subnets[1].id
   allocation_id = aws_eip.nat_gateway.id
   tags = {
-    Name = concat(var.app_name, " NAT")
+    Name = "${var.app_name} NAT"
   }
   # To ensure proper ordering, it is recommended to add an explicit dependency
   # on the Internet Gateway for the VPC.
