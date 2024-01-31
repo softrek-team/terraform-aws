@@ -28,6 +28,7 @@ module "myapp-vpc" {
   public_subnet_cidrs  = (var.public_subnet_cidrs)
   private_subnet_cidrs = (var.private_subnet_cidrs)
   cidr_block           = (var.cidr_block)
+  app_name             = (var.app_name)
 }
 
 #Request SSL Certificate
@@ -96,13 +97,13 @@ module "myapp-vpc" {
 # }
 
 #ECS Cluster
-module "ecs-cluster" {
-  source          = "./modules/ecs"
-  app_environment = var.app_environment
-  depends_on = [
-    module.myapp-vpc
-  ]
-}
+# module "ecs-cluster" {
+#   source          = "./modules/ecs"
+#   app_environment = var.app_environment
+#   depends_on = [
+#     module.myapp-vpc
+#   ]
+# }
 # #ECR for GraphQL
 # module "graph-ecr" {
 #   source          = "./modules/ecr"
