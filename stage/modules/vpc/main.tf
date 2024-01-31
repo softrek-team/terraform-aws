@@ -1,17 +1,17 @@
 resource "aws_vpc" "main" {
-  cidr_block = var.cidr_block
+  cidr_block           = var.cidr_block
   enable_dns_hostnames = true
-  enable_dns_support = true
+  enable_dns_support   = true
   tags = {
-    Name = "myapp VPC"
+    Name = concat(var.app_name, " VPC")
   }
 }
 
 resource "aws_subnet" "public_subnets" {
-  count             = length(var.public_subnet_cidrs)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = element(var.public_subnet_cidrs, count.index)
-  availability_zone = element(var.azs, count.index)
+  count                                       = length(var.public_subnet_cidrs)
+  vpc_id                                      = aws_vpc.main.id
+  cidr_block                                  = element(var.public_subnet_cidrs, count.index)
+  availability_zone                           = element(var.azs, count.index)
   enable_resource_name_dns_a_record_on_launch = true
   tags = {
     Name = "Public Subnet ${count.index + 1}"
@@ -19,10 +19,10 @@ resource "aws_subnet" "public_subnets" {
 }
 
 resource "aws_subnet" "private_subnets" {
-  count             = length(var.private_subnet_cidrs)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = element(var.private_subnet_cidrs, count.index)
-  availability_zone = element(var.azs, count.index)
+  count                                       = length(var.private_subnet_cidrs)
+  vpc_id                                      = aws_vpc.main.id
+  cidr_block                                  = element(var.private_subnet_cidrs, count.index)
+  availability_zone                           = element(var.azs, count.index)
   enable_resource_name_dns_a_record_on_launch = true
   tags = {
     Name = "Private Subnet ${count.index + 1}"
@@ -33,7 +33,7 @@ resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "myapp VPC IG"
+    Name = concat(var.app_name, " VPC IG")
   }
 }
 
@@ -45,8 +45,8 @@ resource "aws_route_table" "internet_rt" {
     gateway_id = aws_internet_gateway.gw.id
   }
   route {
-    cidr_block = "192.168.248.0/21"
-    vpc_peering_connection_id  = "pcx-034d240b92619cca3"
+    cidr_block                = "192.168.248.0/21"
+    vpc_peering_connection_id = "pcx-034d240b92619cca3"
   }
 
   tags = {
@@ -63,7 +63,7 @@ resource "aws_route_table_association" "public_subnet_asso" {
 resource "aws_eip" "nat_gateway" {
   vpc = true
   tags = {
-    Name = "myapp NAT"
+    Name = concat(var.app_name, " NAT")
   }
 }
 
@@ -71,7 +71,7 @@ resource "aws_nat_gateway" "nat_gateway" {
   subnet_id     = aws_subnet.public_subnets[1].id
   allocation_id = aws_eip.nat_gateway.id
   tags = {
-    Name = "myapp NAT"
+    Name = concat(var.app_name, " NAT")
   }
   # To ensure proper ordering, it is recommended to add an explicit dependency
   # on the Internet Gateway for the VPC.
@@ -85,22 +85,19 @@ output "nat_gateway_ip" {
 resource "aws_route_table" "nat_gateway" {
   vpc_id = aws_vpc.main.id
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat_gateway.id
   }
-  route {
-    cidr_block = "192.168.248.0/21"
-    vpc_peering_connection_id = "pcx-034d240b92619cca3"
-  }
+
   tags = {
     Name = "Intranet Route Table"
   }
 }
 
 resource "aws_route_table_association" "nat_gateway" {
-       count          = length(var.private_subnet_cidrs)
-     subnet_id      =         element(aws_subnet.private_subnets[*].id, count.index)
+  count     = length(var.private_subnet_cidrs)
+  subnet_id = element(aws_subnet.private_subnets[*].id, count.index)
 
-     
+
   route_table_id = aws_route_table.nat_gateway.id
 }
