@@ -1,0 +1,37 @@
+name: Autodeploy to AWS TEST TEST TEST
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseType:
+        description: 'Where to release (stage or prod)?'
+        required: true
+        default: 'stage'
+  push:
+    branches:
+      - stage
+  release:
+    types: [published]
+
+jobs:
+  deploy-stage:
+    runs-on: ubuntu-latest
+    environment: stage
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+    
+      - name: 'Create env file'
+        run: |
+          cat ${{ vars.ENV }}
+
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+    
+      - name: 'Create env file'
+        run: |
+          cat ${{ vars.ENV }}
