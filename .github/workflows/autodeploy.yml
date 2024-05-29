@@ -14,22 +14,35 @@ on:
     types: [published]
 
 jobs:
-  deploy-stage:
+  set-variable:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/stage' || (github.event_name == 'workflow_dispatch' && github.event.inputs.releaseType == 'stage')
-    environment: stage
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-    
-      - name: 'Create env file'
-        run: |
-          cat ${{ vars.ENV }}
+    outputs:
+      environment: ${{ steps.set-env.outputs.ENVIRONMENT }}
 
-  deploy-prod:
+    steps:
+    - name: Set Variable
+      id: set-env
+      run: |
+        if [ "${{ github.event.inputs.releaseType }}" == "stage" ]; then
+          echo "ENVIRONMENT=stage" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event.inputs.releaseType }}" == "prod" ]; then
+          echo "ENVIRONMENT=prod" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/stage" ]; then
+          echo "ENVIRONMENT=stage" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event_name }}" == "release" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          echo "ENVIRONMENT=prod" >> $GITHUB_OUTPUT
+        else
+          echo "ENVIRONMENT=stage" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Use Variable
+      run: |
+        echo "The environment is: ${{ steps.set-env.outputs.ENVIRONMENT }}"
+  
+  deploy:
+    needs: set-variable
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.releaseType == 'prod')
-    environment: prod
+    environment: ${{ needs.set-variable.outputs.environment }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
